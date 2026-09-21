@@ -1,0 +1,112 @@
+<header class="board-header">
+  <div class="header-left">
+    <h1>Dispatch</h1>
+    <p class="tagline">Route the work. Watch it move.</p>
+  </div>
+  <div class="header-right">
+    <div class="search-wrap">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Find a task…"
+        autocomplete="off"
+        aria-label="Search tasks"
+      />
+    </div>
+    <button class="btn-primary" type="button" (click)="openNewTask()">+ New task</button>
+  </div>
+</header>
+
+<ng-container *ngIf="tasks$ | async as tasks">
+  <main class="board" *ngIf="tasks.length; else emptyState">
+    <section class="lane" *ngFor="let lane of lanes">
+      <div class="lane-head">
+        <h2>{{ lane.label }}</h2>
+        <span class="lane-count">{{ laneCount(tasks, lane.key) }}</span>
+      </div>
+
+      <div
+        class="lane-body"
+        [class.drag-over]="dragOverLane === lane.key"
+        (dragover)="onDragOver($event, lane.key)"
+        (dragleave)="onDragLeave(lane.key)"
+        (drop)="onDrop($event, lane.key)"
+      >
+        <div
+          class="card"
+          *ngFor="let task of laneTasks(tasks, lane.key)"
+          [attr.data-priority]="task.priority"
+          draggable="true"
+          (dragstart)="onDragStart(task)"
+          (dragend)="onDragEnd()"
+        >
+          <p class="card-title">{{ task.title }}</p>
+          <p class="card-notes" *ngIf="task.notes">{{ task.notes }}</p>
+          <div class="card-foot">
+            <span class="priority-tag" [attr.data-priority]="task.priority">{{ priorityLabel(task.priority) }}</span>
+            <button class="card-edit" type="button" (click)="openEditTask(task)">Edit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <p>Nothing on the board yet.</p>
+      <button class="btn-primary" type="button" (click)="openNewTask()">Create your first task</button>
+    </div>
+  </ng-template>
+</ng-container>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="saveTask()">
+    <h3>{{ editingId ? 'Edit task' : 'New task' }}</h3>
+
+    <label for="taskTitle">Title</label>
+    <input
+      type="text"
+      id="taskTitle"
+      name="taskTitle"
+      maxlength="80"
+      required
+      [(ngModel)]="formTitle"
+      placeholder="e.g. Fix cart total rounding"
+    />
+
+    <label for="taskNotes">Notes</label>
+    <textarea
+      id="taskNotes"
+      name="taskNotes"
+      rows="3"
+      maxlength="280"
+      [(ngModel)]="formNotes"
+      placeholder="Optional detail…"
+    ></textarea>
+
+    <div class="modal-row">
+      <div class="field">
+        <label for="taskPriority">Priority</label>
+        <select id="taskPriority" name="taskPriority" [(ngModel)]="formPriority">
+          <option value="low">Low</option>
+          <option value="standard">Standard</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="taskLane">Lane</label>
+        <select id="taskLane" name="taskLane" [(ngModel)]="formLane">
+          <option value="queued">Queued</option>
+          <option value="moving">In motion</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-ghost" (click)="closeModal()">Cancel</button>
+      <button type="button" class="btn-danger" *ngIf="editingId" (click)="deleteTask()">Delete task</button>
+      <button type="submit" class="btn-primary">{{ editingId ? 'Save changes' : 'Add to board' }}</button>
+    </div>
+  </form>
+</div>
