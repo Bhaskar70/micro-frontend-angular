@@ -2,13 +2,19 @@
   command = "npm run build:all"
   publish = "dist/publish"
 
-# SPA routing fallback for Host and direct deep links
+# Disable Netlify's automatic Angular runtime plugin
+[[plugins]]
+  package = "@netlify/angular-runtime"
+  [plugins.inputs]
+    disabled = true
+
+# SPA routing fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# CORS headers for remote entry and federated chunks
+# CORS headers for federated modules
 [[headers]]
   for = "/*"
   [headers.values]
