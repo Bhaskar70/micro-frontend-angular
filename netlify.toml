@@ -2,11 +2,8 @@
   command = "npm run build:all"
   publish = "dist/publish"
 
-# Disable Netlify's automatic Angular runtime plugin
-[[plugins]]
-  package = "@netlify/angular-runtime"
-  [plugins.inputs]
-    disabled = true
+[build.environment]
+  NETLIFY_SKIP_ANGULAR_PLUGIN = "true"
 
 # SPA routing fallback
 [[redirects]]
